@@ -21,7 +21,7 @@ from tqdm import tqdm
 # import numbatest
 
 
-size = 28
+size = 20
 b = NpBoard(size=size)
 queens = []
 i = 0
@@ -48,7 +48,7 @@ if recursiveTester(0, 0):
         result.append(x[0])
     b.placeQueenArr(result)
     print()
-    b.drawboard(True)
+    b.drawboard(True*2)
     print("Done")
 else:
     print("No possible solution")
