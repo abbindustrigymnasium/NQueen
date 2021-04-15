@@ -4,12 +4,12 @@ from tqdm import tqdm, trange
 import matplotlib.pyplot as plt
 from time import time
 
-size = 20
+size = 10
 epsilon = 0.8
 DEPSILON = 0.99
 N_CHILDREN = 10
 GEN_SIZE = 250
-trials = 10
+trials = 100
 # b = NpBoard(size)
 
 # chromo = [1,1,1,1]
@@ -111,7 +111,7 @@ def tryGenSize(popSize):
     DEPSILON = 0.99
     
     gen0 = genGeneration(popSize)
-    t = tqdm(range(200), desc='Starting', leave=False)
+    t = tqdm(range(150), desc='Starting', leave=False)
     for gen in t:
         epsilon *= DEPSILON
         temp = solveGenetic(gen0)
@@ -131,16 +131,17 @@ def drawPlot(arr, trials=trials):
     # times = [x[1] for x in arr]
     red = Color("red")
     colours = list(red.range_to(Color("green"), trials))
-    for s, t in arr:
-        c = colours[round(t/trials)]
-        plt.bar(x=s, height=t, width=3, color=c.get_rgb() + (1,))
+    for s, t, n in arr:
+        print(s,t,n)
+        c = colours[n-1]
+        plt.bar(x=s, height=t, color=c.get_rgb() + (1,))
     plt.savefig('plot.png')
     plt.show()
 
 if __name__ == '__main__':
     
     results = []
-    t = trange(40, 210, 10, desc="Starting...")
+    t = trange(10, 30, 1, desc="Starting...")
     for popSize in t:
         for i in trange(trials, desc='trials', leave=False):
             t.set_description(f'PopSize {popSize}. Results: {len(results)}')
@@ -150,7 +151,7 @@ if __name__ == '__main__':
                 results.append((popSize, times))
     
     fixed = {}
-    for popSize in range(40,210,10):
+    for popSize in range(10,30,1):
         fixed[popSize] = []
         
     for popSize, time in results:
@@ -158,7 +159,7 @@ if __name__ == '__main__':
 
     out = []
     for popSize, times in fixed.items():
-        out.append((popSize, sum(times)/len(times)))
+        out.append((popSize, sum(times)/len(times), len(times)))
 
     drawPlot(out)
     # main()
