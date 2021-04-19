@@ -3,11 +3,14 @@ from random import randrange, choice, random
 from tqdm import tqdm, trange
 import matplotlib.pyplot as plt
 from time import time
+from multiprocessing import Pool
+from colour import Color    
+
 
 size = 10
 epsilon = 0.8
 DEPSILON = 0.99
-N_CHILDREN = 10
+N_CHILDREN = 100
 GEN_SIZE = 250
 trials = 100
 # b = NpBoard(size)
@@ -111,22 +114,22 @@ def tryGenSize(popSize):
     DEPSILON = 0.99
     
     gen0 = genGeneration(popSize)
-    t = tqdm(range(150), desc='Starting', leave=False)
-    for gen in t:
+    # t = tqdm(range(150), desc='Starting', leave=False)
+    for gen in range(150):
         epsilon *= DEPSILON
         temp = solveGenetic(gen0)
         gen0 = temp
         if type(temp) == tuple:
-            return time()-t1
+            return (popSize, time()-t1)
 
-        t.set_description(f"gen: {gen}, Lowest colision: {collisions(gen0[0])}, gensize: {len(gen0)}, epsilon: {round(epsilon, 3)}")
-    return 0
+        # t.set_description(f"gen: {gen}, Lowest colision: {collisions(gen0[0])}, gensize: {len(gen0)}, epsilon: {round(epsilon, 3)}")
+    return (popSize, 0)
     
-        
+def tryMultipleGenSize(pop, n):
+    return [tryGenSize(pop) for x in range(n)]
     
 
 def drawPlot(arr, trials=trials):
-    from colour import Color    
     # sizes = [x[0] for x in arr]
     # times = [x[1] for x in arr]
     red = Color("red")
@@ -134,24 +137,43 @@ def drawPlot(arr, trials=trials):
     for s, t, n in arr:
         print(s,t,n)
         c = colours[n-1]
-        plt.bar(x=s, height=t, color=c.get_rgb() + (1,))
+        plt.bar(x=s, height=t, color=c.get_rgb() + (1,), width=8)
     plt.savefig('plot.png')
     plt.show()
 
 if __name__ == '__main__':
-    
+    from functools import partial
+    func = partial(tryMultipleGenSize, n=100)
     results = []
-    t = trange(10, 30, 1, desc="Starting...")
-    for popSize in t:
-        for i in trange(trials, desc='trials', leave=False):
-            t.set_description(f'PopSize {popSize}. Results: {len(results)}')
+    # t = trange(10, 30, 1, desc="Starting...")
+    # for popSize in t:
+    #     for i in trange(trials, desc='trials', leave=False):
+    #         t.set_description(f'PopSize {popSize}. Results: {len(results)}')
             # print(f"Trying size: {size} i: {i}")
-            times = tryGenSize(popSize)
-            if times:
-                results.append((popSize, times))
+
+    with Pool(8) as p:
+#         r = list(tqdm(p.imap(func, n_list), total=len(n_list)))
+        results = []
+        t = range(100, 2000, 10)
+        with tqdm(total=len(t), desc="Starting...") as progress:
+            for res in p.imap(func, t):
+                for it in res:
+                    if it[1]:
+                        results.append(it)
+
+
+                # results.append(res)
+                progress.set_description(f"Found {len(results)} solutions. Currently in {res[0]}")
+                progress.update()
+
     
+        p.close()
+        p.join()
+            # times = tryGenSize(popSize)
+
+
     fixed = {}
-    for popSize in range(10,30,1):
+    for popSize in range(100, 2000, 10):
         fixed[popSize] = []
         
     for popSize, time in results:
